@@ -46,6 +46,8 @@ def getPersonInfo(id,selectedPeople):
 
 # to get distance time details of a person id
 def getWeight(id,selectedPeople):
+	id[0]=id[0]-1
+	id[1]=id[1]-1
 	PersonInfo=getPersonInfo(id,selectedPeople)
 	return DistanceMatrix.loc[\
 		(checkEquality(DistanceMatrix['lat1'],PersonInfo[0][0])) &
@@ -54,6 +56,7 @@ def getWeight(id,selectedPeople):
 		(checkEquality(DistanceMatrix['long2'],PersonInfo[1][1]))\
 		].dis.tolist()[0]
 
+# to add constrains in the model
 
 # testing code beneath
 
@@ -67,3 +70,28 @@ def getWeight(id,selectedPeople):
 # print(type(y),type(y[0][0]))
 # print(getWeight([0,2000],2000))
 # print(checkEquality(92,92.0000000001))
+print('Please Input CP')
+CP=int(input())
+
+print('select driver')
+driver=int(input())
+
+print('creating required variable')
+N=selectedPeople
+N_loop=range(1,N+1)
+CP_loop=range(1,CP+1)
+R=2*CP+1
+R_loop=range(1,R+1)
+N2_loop=range(1,2*N+1)
+R_minus1_loop=range(1,R)
+variables=[(i,j,r)\
+for i in N2_loop\
+for j in N2_loop\
+for r in R_loop]
+x=model.binary_var_dict(variables,name='x')
+print('created all required variables succesfully')
+
+print('Constraints adddition started')
+
+print('adding constraint one')
+SRNC.add_constraint(SNRC.sum(x[]))	
