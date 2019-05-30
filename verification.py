@@ -70,6 +70,7 @@ def getWeight(id,selectedPeople):
 # print(type(y),type(y[0][0]))
 # print(getWeight([0,2000],2000))
 # print(checkEquality(92,92.0000000001))
+selectedPeople=100
 print('Please Input CP')
 CP=int(input())
 
@@ -78,6 +79,8 @@ driver=int(input())
 
 print('creating required variable')
 N=selectedPeople
+s=driver
+t=driver+N
 N_loop=range(1,N+1)
 CP_loop=range(1,CP+1)
 R=2*CP+1
@@ -88,10 +91,78 @@ variables=[(i,j,r)\
 for i in N2_loop\
 for j in N2_loop\
 for r in R_loop]
-x=model.binary_var_dict(variables,name='x')
+x=SRNC.binary_var_dict(variables,name='x')
+
 print('created all required variables succesfully')
+for h in N_loop:
+	if h==s:
+		SRNC.add_constraint(SRNC.sum(x[i,h,r] for i in N2_loop for r in R_loop)==0)
+		SRNC.add_constraint(SRNC.sum(x[h+N,i,r] for i in N2_loop for r in R_loop)==0)
+	else:
+		SRNC.add_constraint(SRNC.sum(x[i,h,r] for i in N2_loop for r in R_loop)==SRNC.sum(x[i,h+N,r] for i in N2_loop for r in R_loop))
+# 		for r in range(1,R+1):
+# 			SRNC.add_constraint(SRNC.sum(x[i,h,r] for i in N2_loop)==SRNC.sum(x[i,h+N,f] for i in N2_loop for f in range(r+1,R)))
 
 print('Constraints adddition started')
+for i in N2_loop:
+	for j in R_loop:
+		SRNC.add_constraint(x[i,i,j]==0)
+print('adding constraint 1')
+SRNC.add_constraint(SRNC.sum(x[s,h,1] for h in N_loop)==1)
+print('constraint one added succesfully')
+print('adding constraint 2')
+SRNC.add_constraint(SRNC.sum(x[w,t,R] for w in range(N+1,2*N+1))==1)
+print('constraint 2 added')
+print('adding constraint 3')
+SRNC.solve()
+SRNC.print_information()
+SRNC.print_solution()
+SRNC.add_constraint(SRNC.sum(x[i,h,r]\
+	for i in N2_loop\
+	for h in N_loop\
+	for r in R_loop)==CP)
+print('added constraint 3 succesfully')
+print('adding constraint 4')
+SRNC.add_constraint(SRNC.sum(x[i,w,r]\
+	for i in N2_loop \
+	for w in range(N+1,2*N+1)\
+	for r in R_loop)==CP+1)
+print('added constraint 4 succesfully')
+print('adding constraint 6')
+for r in R_loop:
+	SRNC.add_constraint(SRNC.sum(x[i,j,r] for i in N2_loop for j in N2_loop)==1)
+print('added constraint 6 succesfully')
+print('adding constraint 7')
+for j in N2_loop:
+	SRNC.add_constraint(SRNC.sum(x[i,j,r]\
+		for i in N2_loop\
+		for r in R_loop)<=1)
+print('added constraint 7 succesfully')
+print('adding constraint 8')
+for i in N2_loop:
+	SRNC.add_constraint(SRNC.sum(x[i,j,r]\
+		for j in N2_loop\
+		for r in R_loop)<=1)
+print('added constraint 8 succesfully')
+print('adding constraint 5')
+for j in N2_loop:
+	for r in R_minus1_loop:
+		SRNC.add_constraint(SRNC.sum(x[i,j,r]\
+			for i in N2_loop)==SRNC.sum(x[j,i,r+1]\
+			for i in N2_loop))
+# for h in N_loop:
+# 	if h==s:
+# 		SRNC.add_constraint(SRNC.sum(x[i,h,r] for i in N2_loop for r in R_loop)==0)
+# 		SRNC.add_constraint(SRNC.sum(x[h+N,i,r] for i in N2_loop for r in R_loop)==0)
+# 	else:
+# 		for r in R_minus1_loop:
+# 			SRNC.add_constraint(SRNC.sum(x[i,h,r] for i in N2_loop)==SRNC.sum(x[i,h+N,f]\
+# 				# for i in N2_loop\
+				# for f in range(r+1,R+1)))
+# print('added constraint 5')
 
-print('adding constraint one')
-SRNC.add_constraint(SNRC.sum(x[]))	
+print('added constraint 5')
+print(SRNC.solve())
+print('Current Model Status',SRNC.print_information())
+SRNC.print_information()
+SRNC.print_solution()
