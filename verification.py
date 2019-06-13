@@ -20,9 +20,9 @@ print('initialized model')
 def SelectPeopleInNetWork():
 	print('Input the number of people you want in network(<=2000)')
 	selectedPeople=int(input())
-	PeopleData=PeopleData[:selectedPeople]
+	PeopleDataAfterCut=PeopleData[:selectedPeople]
 	print('Selected first '+ str(selectedPeople)+' people from a list of 2000 randomly generated people from a list of 100k+')
-	return(PeopleData,selectedPeople)
+	return(PeopleDataAfterCut,selectedPeople)
 
 #we are considering an limit of 0.0000001 for equality to to floating point errors
 # this limit is a valid number as my dataset is well know from before
@@ -32,13 +32,13 @@ def checkEquality(num1,num2):
 # to get information of person
 # person info returned in the format
 def getPersonInfo(id,selectedPeople):
-	if(id[0]<2000):
-		if(id[1]<2000):
+	if(id[0]<selectedPeople):
+		if(id[1]<selectedPeople):
 			return [PeopleData.loc[id[0],['lat1','long1']].tolist(),PeopleData.loc[id[1],['lat1','long1']].tolist()]
 		else:
 			return [PeopleData.loc[id[0],['lat1','long1']].tolist(),PeopleData.loc[id[1]-selectedPeople,['lat2','long2']].tolist()]
 	else:
-		if(id[1]<2000):
+		if(id[1]<selectedPeople):
 			return [PeopleData.loc[id[0]-selectedPeople,['lat2','long2']].tolist(),PeopleData.loc[id[1],['lat1','long1']].tolist()]
 		else:
 			return [PeopleData.loc[id[0]-selectedPeople,['lat2','long2']].tolist(),PeopleData.loc[id[1]-selectedPeople,['lat2','long2']].tolist()]	
@@ -56,113 +56,4 @@ def getWeight(id,selectedPeople):
 		(checkEquality(DistanceMatrix['long2'],PersonInfo[1][1]))\
 		].dis.tolist()[0]
 
-# to add constrains in the model
 
-# testing code beneath
-
-# print(PeopleData)
-# y=PeopleData.loc[0,['lat1','long1']].tolist()
-# y=getPersonInfo([0,2000],2000)
-# print(y)
-# temp=DistanceMatrix.loc[(checkEquality(DistanceMatrix['lat1'],y[0][0])) & (checkEquality(DistanceMatrix['long1'],y[0][1])) & (checkEquality(DistanceMatrix['lat2'],y[1][0])) & (checkEquality(DistanceMatrix['long2'],y[1][1]))].dis.tolist()[0]
-# print(temp)
-# print(getWeight([0,2000],2000))
-# print(type(y),type(y[0][0]))
-# print(getWeight([0,2000],2000))
-# print(checkEquality(92,92.0000000001))
-selectedPeople=100
-print('Please Input CP')
-CP=int(input())
-
-print('select driver')
-driver=int(input())
-
-print('creating required variable')
-N=selectedPeople
-s=driver
-t=driver+N
-N_loop=range(1,N+1)
-CP_loop=range(1,CP+1)
-R=2*CP+1
-R_loop=range(1,R+1)
-N2_loop=range(1,2*N+1)
-R_minus1_loop=range(1,R)
-variables=[(i,j,r)\
-for i in N2_loop\
-for j in N2_loop\
-for r in R_loop]
-x=SRNC.binary_var_dict(variables,name='x')
-
-print('created all required variables succesfully')
-for h in N_loop:
-	if h==s:
-		SRNC.add_constraint(SRNC.sum(x[i,h,r] for i in N2_loop for r in R_loop)==0)
-		SRNC.add_constraint(SRNC.sum(x[h+N,i,r] for i in N2_loop for r in R_loop)==0)
-	else:
-		SRNC.add_constraint(SRNC.sum(x[i,h,r] for i in N2_loop for r in R_loop)==SRNC.sum(x[i,h+N,r] for i in N2_loop for r in R_loop))
-# 		for r in range(1,R+1):
-# 			SRNC.add_constraint(SRNC.sum(x[i,h,r] for i in N2_loop)==SRNC.sum(x[i,h+N,f] for i in N2_loop for f in range(r+1,R)))
-
-print('Constraints adddition started')
-for i in N2_loop:
-	for j in R_loop:
-		SRNC.add_constraint(x[i,i,j]==0)
-print('adding constraint 1')
-SRNC.add_constraint(SRNC.sum(x[s,h,1] for h in N_loop)==1)
-print('constraint one added succesfully')
-print('adding constraint 2')
-SRNC.add_constraint(SRNC.sum(x[w,t,R] for w in range(N+1,2*N+1))==1)
-print('constraint 2 added')
-print('adding constraint 3')
-SRNC.solve()
-SRNC.print_information()
-SRNC.print_solution()
-SRNC.add_constraint(SRNC.sum(x[i,h,r]\
-	for i in N2_loop\
-	for h in N_loop\
-	for r in R_loop)==CP)
-print('added constraint 3 succesfully')
-print('adding constraint 4')
-SRNC.add_constraint(SRNC.sum(x[i,w,r]\
-	for i in N2_loop \
-	for w in range(N+1,2*N+1)\
-	for r in R_loop)==CP+1)
-print('added constraint 4 succesfully')
-print('adding constraint 6')
-for r in R_loop:
-	SRNC.add_constraint(SRNC.sum(x[i,j,r] for i in N2_loop for j in N2_loop)==1)
-print('added constraint 6 succesfully')
-print('adding constraint 7')
-for j in N2_loop:
-	SRNC.add_constraint(SRNC.sum(x[i,j,r]\
-		for i in N2_loop\
-		for r in R_loop)<=1)
-print('added constraint 7 succesfully')
-print('adding constraint 8')
-for i in N2_loop:
-	SRNC.add_constraint(SRNC.sum(x[i,j,r]\
-		for j in N2_loop\
-		for r in R_loop)<=1)
-print('added constraint 8 succesfully')
-print('adding constraint 5')
-for j in N2_loop:
-	for r in R_minus1_loop:
-		SRNC.add_constraint(SRNC.sum(x[i,j,r]\
-			for i in N2_loop)==SRNC.sum(x[j,i,r+1]\
-			for i in N2_loop))
-# for h in N_loop:
-# 	if h==s:
-# 		SRNC.add_constraint(SRNC.sum(x[i,h,r] for i in N2_loop for r in R_loop)==0)
-# 		SRNC.add_constraint(SRNC.sum(x[h+N,i,r] for i in N2_loop for r in R_loop)==0)
-# 	else:
-# 		for r in R_minus1_loop:
-# 			SRNC.add_constraint(SRNC.sum(x[i,h,r] for i in N2_loop)==SRNC.sum(x[i,h+N,f]\
-# 				# for i in N2_loop\
-				# for f in range(r+1,R+1)))
-# print('added constraint 5')
-
-print('added constraint 5')
-print(SRNC.solve())
-print('Current Model Status',SRNC.print_information())
-SRNC.print_information()
-SRNC.print_solution()
