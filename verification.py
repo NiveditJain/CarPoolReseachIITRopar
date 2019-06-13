@@ -57,3 +57,9 @@ def getWeight(id,selectedPeople):
 		].dis.tolist()[0]
 
 
+<<<<<<< HEAD
+=======
+PeopleData,selectedPeople=SelectPeopleInNetWork()
+print(PeopleData)
+print(getWeight([1,5],selectedPeople))
+>>>>>>> f3ee3f3214c34dd09a1c5e42e9c92688fb4d2409
